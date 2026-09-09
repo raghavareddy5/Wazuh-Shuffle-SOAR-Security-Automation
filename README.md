@@ -165,7 +165,7 @@ The Shuffle workflow receives the Wazuh alert through a webhook and forwards the
 
 The resulting email demonstrates successful end-to-end automation. Information from the Wazuh alert is included in the notification sent to the SOC analyst.
 
-![Automated SOC Email Alert](screenshots/05-automated-email-alert.png)
+![Automated SOC Email Alert](https://github.com/raghavareddy5/Wazuh-Shuffle-SOAR-Security-Automation/blob/6d0a44ddad89bbe8e2f76e1b3e9af3d15dfa3b2f/Email%20alert%20for%20Logon%20failure.png)
 
 ---
 
