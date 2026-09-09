@@ -1,84 +1,214 @@
-Wazuh + Shuffle SOAR: Automated Failed-Login Alerting
-A small SOC automation pipeline that catches Windows failed login attempts with Wazuh and pushes a formatted alert email out through Shuffle SOAR and a self-hosted Postfix relay — no manual triage needed for this alert type.
-Overview
-A Windows endpoint runs the Wazuh Agent, which forwards security events to a Wazuh Manager. When a failed logon is detected, Wazuh fires a webhook to Shuffle SOAR, which filters on the specific rule ID and triggers an email action. That email is relayed through a containerized Postfix instance to the SOC inbox.
-Right now the pipeline is scoped to one detection: Windows Event ID 4625 (failed logon) via Wazuh Rule 60122. It's meant as a working proof of concept for the pattern — swap in a different rule ID and email template, and the same skeleton handles a new alert type.
-Architecture
-text
-Windows Endpoint
-       │  Event ID 4625
-       ▼
-Wazuh Agent
-       │
-       ▼
-Wazuh Manager  ──  Rule 60122
-       │
-       │  Webhook
-       ▼
-Shuffle SOAR  ──  Rule ID filter
-       │
-       ▼
-Email Action
-       │
-       ▼
-Postfix SMTP Relay
-       │
-       ▼
-Inbox
-Stack
-Wazuh (Agent + Manager)
-Shuffle SOAR
-Docker / Docker Swarm
-Postfix SMTP relay (containerized)
-Gmail SMTP as the upstream relay
-Windows Security Event Logs
-Detection
-Parameter	Value
-Windows Event ID	4625
-Wazuh Rule ID	60122
-Rule Description	Logon Failure - Unknown user or bad password
-Wazuh Rule Level	5
-Event Type	Authentication Failure
-Workflow
-A failed login on the Windows endpoint generates Event ID 4625.
-The Wazuh Agent ships the event to the Manager.
-Rule 60122 matches it as a logon failure.
-Wazuh posts the alert to a Shuffle webhook.
-Shuffle filters on the rule ID and passes matches to the Email action.
-The Email action builds the notification and hands it to the Postfix container.
-Postfix relays it out via Gmail SMTP to the SOC inbox.
-What's in the alert email
-Alert title, rule ID, severity, timestamp, alert ID
-Agent ID, name, and IP
-Windows Event ID, computer name, security channel
-Target username, logon type, failure reason
-Source IP, process name
-Screenshots
-Wazuh Agent
-Windows endpoint connected and reporting to the Wazuh Manager. Show Image
-Failed Login Detection
-Rule 60122 firing on a failed logon attempt. Show Image
-Alert Details
-Full authentication context, including Event ID 4625. Show Image
-Shuffle Workflow
-Webhook in, rule filter, Email action out. Show Image
-Delivered Alert
-The final notification landing in the inbox. Show Image
-Security notes
-Gmail App Passwords are stored as Docker Secrets, not in the workflow.
-SMTP credentials never appear in source.
-No API keys are committed to this repo.
-Private IPs and personal email addresses are redacted from screenshots before publishing.
-Roadmap
- Cover more Windows security event types
- Threat-intel enrichment (IP reputation lookups)
- Slack / Microsoft Teams notification channel
- Automated response actions (e.g. auto-block suspicious source IPs)
- Additional SOAR workflows for other rule sets
- Basic dashboarding/reporting layer
- Detect suspicious PowerShell activity
- Detect privilege escalation attempts
-Author
-Raghava Reddy — Cybersecurity / SOC / Security Automation
-Linkdin - https://www.linkedin.com/in/raghava-reddy-795b8b310/
+# Wazuh + Shuffle SOAR: Automated Windows Authentication Alerting
 
+A hands-on SOC lab demonstrating how **Wazuh and Shuffle SOAR** can be integrated to detect failed Windows authentication attempts and automatically notify a security analyst.
+
+## 📌 Project Summary
+
+This project implements an automated security monitoring workflow using a Windows virtual machine as the monitored endpoint.
+
+When a user authentication attempt fails, Windows generates a Security Event Log entry. Wazuh collects the event, analyzes it using its detection rules, and forwards the resulting alert to Shuffle SOAR.
+
+Shuffle then processes the alert and sends a structured email containing the important investigation details.
+
+The goal is to demonstrate how repetitive SOC tasks can be automated, allowing analysts to receive actionable alerts without manually checking every authentication event.
+
+---
+
+## 🏗️ Lab Architecture
+
+```text
+┌─────────────────────┐
+│   Windows Endpoint  │
+│                     │
+│  Security Event     │
+│      ID 4625        │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│    Wazuh Agent      │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│    Wazuh Manager    │
+│                     │
+│ Event Analysis &    │
+│ Rule-Based Alerting │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│     Shuffle SOAR    │
+│                     │
+│ Webhook → Parsing   │
+│ → Formatting        │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│   Email Notification │
+│                     │
+│     SOC Analyst     │
+└─────────────────────┘
+```
+
+---
+
+## 🛠️ Tools & Technologies
+
+| Technology | Purpose |
+|---|---|
+| **Wazuh** | Endpoint monitoring, log collection, and security detection |
+| **Shuffle SOAR** | Workflow automation and alert handling |
+| **Windows Security Logs** | Source of authentication telemetry |
+| **SMTP / Email** | Delivery of automated security notifications |
+| **UTM** | Virtualized environment for the security lab |
+
+---
+
+## 🔎 Detection Use Case
+
+The detection scenario focuses on unsuccessful Windows login attempts.
+
+For testing, an invalid username/password combination was used against the Windows endpoint, producing a Windows Security event.
+
+### Detection details
+
+- **Windows Event ID:** `4625`
+- **Wazuh Rule ID:** `60122`
+- **Detection:** `Logon Failure - Unknown user or bad password`
+- **Wazuh Severity:** `Level 5`
+- **Logon Type:** `2`
+
+The Wazuh agent collects the Windows event and forwards it to the Wazuh manager, where the event is evaluated against the configured detection rules.
+
+Once the corresponding rule matches, Wazuh generates an alert that can be consumed by the automation workflow.
+
+---
+
+## ⚙️ SOAR Automation Flow
+
+The alert-handling process is automated through Shuffle.
+
+### Workflow
+
+**1. Alert ingestion**
+
+Wazuh forwards the generated security alert to a Shuffle webhook.
+
+**2. Event processing**
+
+Shuffle receives the JSON alert and accesses the fields generated by Wazuh.
+
+**3. Data extraction**
+
+Important fields are pulled from the event, including the affected system, rule information, authentication details, and network information.
+
+**4. Alert construction**
+
+Shuffle dynamically builds a readable security notification instead of sending the raw Wazuh JSON directly to the analyst.
+
+**5. Analyst notification**
+
+The completed alert is delivered through email, providing the analyst with the information required for initial investigation.
+
+---
+
+## 📧 Information Included in the Alert
+
+The automated notification contains relevant information from the original Windows/Wazuh event, including:
+
+- Detection description
+- Wazuh rule ID
+- Alert severity
+- Hostname
+- Host IP address
+- Windows Event ID
+- Target/subject account
+- Source IP address
+- Logon type
+- Associated process information
+- Event timestamp
+
+This provides the analyst with useful context immediately instead of requiring them to manually open the original event.
+
+---
+
+## 📸 Lab Evidence
+
+### 1. Wazuh Agent Status
+
+The Windows endpoint is successfully registered with the Wazuh manager and is actively sending telemetry.
+
+![Wazuh Agent Status](screenshots/01-wazuh-agent-active.png)
+
+### 2. Failed Windows Logons
+
+The Wazuh dashboard shows multiple failed authentication attempts generated by the Windows endpoint. These events correspond to Windows Security Event ID `4625`.
+
+![Failed Logon Detection](screenshots/02-failed-logon-detection.png)
+
+### 3. Wazuh Alert Investigation
+
+The event details show the triggered Wazuh rule, severity, MITRE ATT&CK information, and other metadata associated with the authentication failure.
+
+![Wazuh Alert Details](screenshots/03-wazuh-alert-details.png)
+
+### 4. Shuffle SOAR Workflow
+
+The Shuffle workflow receives the Wazuh alert through a webhook and forwards the processed event to the email action.
+
+![Shuffle SOAR Workflow](screenshots/04-shuffle-workflow.png)
+
+### 5. Automated Email Notification
+
+The resulting email demonstrates successful end-to-end automation. Information from the Wazuh alert is included in the notification sent to the SOC analyst.
+
+![Automated SOC Email Alert](screenshots/05-automated-email-alert.png)
+
+---
+
+## 🎯 Skills Demonstrated
+
+This lab provided practical exposure to several SOC and defensive-security concepts:
+
+- Windows Security Event monitoring
+- Authentication-failure analysis
+- SIEM-based detection
+- Wazuh rule investigation
+- MITRE ATT&CK event mapping
+- SOAR workflow creation
+- Webhook integrations
+- JSON alert processing
+- Dynamic data extraction
+- Automated email alerting
+- Initial SOC incident-response automation
+
+---
+
+## 🔮 Potential Enhancements
+
+The current workflow focuses on notification, but it can be expanded into a more complete automated response system.
+
+Possible additions include:
+
+- Detecting repeated failures as potential brute-force activity
+- Enriching source IP addresses with threat-intelligence services
+- Automatically creating incident tickets
+- Sending alerts to Microsoft Teams or Slack
+- Blocking suspicious source IP addresses
+- Isolating compromised endpoints
+- Adding analyst approval before destructive response actions
+- Creating additional detections for Windows security events
+- Maintaining an automated incident timeline
+
+These enhancements could transform the workflow from a simple alerting pipeline into a more complete **detection → enrichment → investigation → response** process.
+
+---
+
+## ⚠️ Disclaimer
+
+This project was created inside an isolated virtualized lab for **educational and defensive cybersecurity purposes**.
+
+The authentication failures and automated responses demonstrated in this project were generated as part of controlled testing and should not be interpreted as activity against production systems.
