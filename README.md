@@ -159,7 +159,7 @@ The event details show the triggered Wazuh rule, severity, MITRE ATT&CK informat
 
 The Shuffle workflow receives the Wazuh alert through a webhook and forwards the processed event to the email action.
 
-![Shuffle SOAR Workflow](screenshots/04-shuffle-workflow.png)
+![Shuffle SOAR Workflow](https://github.com/raghavareddy5/Wazuh-Shuffle-SOAR-Security-Automation/blob/108a63e7194b19ff50082982f14f8905e14fff42/Shuffle%20workflow.png)
 
 ### 5. Automated Email Notification
 
