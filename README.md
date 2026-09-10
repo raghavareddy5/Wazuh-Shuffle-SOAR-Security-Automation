@@ -2,7 +2,7 @@
 
 A hands-on SOC lab demonstrating how **Wazuh and Shuffle SOAR** can be integrated to detect failed Windows authentication attempts and automatically notify a security analyst.
 
-## 📌 Project Summary
+##  Project Summary
 
 This project implements an automated security monitoring workflow using a Windows virtual machine as the monitored endpoint.
 
@@ -14,7 +14,7 @@ The goal is to demonstrate how repetitive SOC tasks can be automated, allowing a
 
 ---
 
-## 🏗️ Lab Architecture
+## Lab Architecture
 
 ```text
 ┌─────────────────────┐
@@ -55,7 +55,7 @@ The goal is to demonstrate how repetitive SOC tasks can be automated, allowing a
 
 ---
 
-## 🛠️ Tools & Technologies
+## Tools & Technologies
 
 | Technology | Purpose |
 |---|---|
@@ -67,7 +67,7 @@ The goal is to demonstrate how repetitive SOC tasks can be automated, allowing a
 
 ---
 
-## 🔎 Detection Use Case
+## Detection Use Case
 
 The detection scenario focuses on unsuccessful Windows login attempts.
 
@@ -87,7 +87,7 @@ Once the corresponding rule matches, Wazuh generates an alert that can be consum
 
 ---
 
-## ⚙️ SOAR Automation Flow
+## SOAR Automation Flow
 
 The alert-handling process is automated through Shuffle.
 
@@ -115,7 +115,7 @@ The completed alert is delivered through email, providing the analyst with the i
 
 ---
 
-## 📧 Information Included in the Alert
+## Information Included in the Alert
 
 The automated notification contains relevant information from the original Windows/Wazuh event, including:
 
@@ -135,7 +135,7 @@ This provides the analyst with useful context immediately instead of requiring t
 
 ---
 
-## 📸 Lab Evidence
+## Lab Evidence
 
 ### 1. Wazuh Agent Status
 
@@ -169,7 +169,7 @@ The resulting email demonstrates successful end-to-end automation. Information f
 
 ---
 
-## 🎯 Skills Demonstrated
+## Skills Demonstrated
 
 This lab provided practical exposure to several SOC and defensive-security concepts:
 
@@ -187,7 +187,7 @@ This lab provided practical exposure to several SOC and defensive-security conce
 
 ---
 
-## 🔮 Potential Enhancements
+## Potential Enhancements
 
 The current workflow focuses on notification, but it can be expanded into a more complete automated response system.
 
@@ -207,7 +207,7 @@ These enhancements could transform the workflow from a simple alerting pipeline 
 
 ---
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 This project was created inside an isolated virtualized lab for **educational and defensive cybersecurity purposes**.
 
